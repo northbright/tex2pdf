@@ -37,6 +37,8 @@ jobs:
       with:
         packages: >-
           scheme-basic
+
+    - name: Check XeLaTex Version
       run: xelatex --version
 
     - name: Build
