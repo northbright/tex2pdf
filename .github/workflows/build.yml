@@ -1,0 +1,46 @@
+# https://help.github.com/en/articles/workflow-syntax-for-github-actions
+
+name: Build
+
+on:
+- push
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+        - windows-2019
+        - windows-latest
+        - macos-12
+        - macos-latest
+        - ubuntu-20.04
+        - ubuntu-22.04
+        - ubuntu-latest
+        go:
+        - "1.21"
+
+      fail-fast: false
+    steps:
+    - name: Checkout source codes
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go }}
+
+    - name: Setup Texlive
+      uses: teatimeguest/setup-texlive-action@v3
+      with:
+        packages: >-
+          scheme-basic
+      run: xelatex --version
+
+    - name: Build
+      run: go build -v
+
+    - name: Test
+      run: go test -v ./...
