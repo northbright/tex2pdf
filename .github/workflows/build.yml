@@ -36,8 +36,7 @@ jobs:
       uses: teatimeguest/setup-texlive-action@v3
       with:
         packages: >-
-          scheme-basic
-          texlive-xetex
+          scheme-full
 
     - name: Check XeLaTex Version
       run: xelatex --version
