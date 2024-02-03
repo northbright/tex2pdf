@@ -10,7 +10,7 @@ import (
 
 func ExampleTex2PDF() {
 	// Open DEBUG mode if need.
-	tex2pdf.DebugMode = true
+	//tex2pdf.DebugMode = true
 
 	texFile := "src/my_book.tex"
 
