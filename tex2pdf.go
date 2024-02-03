@@ -57,7 +57,7 @@ func Tex2PDF(texFile string) (string, error) {
 
 	// Get output PDF file path.
 	baseFile := pathelper.BaseWithoutExt(texFile)
-	pdf := filepath.Join(srcDir, baseFile, ".pdf")
+	pdf := filepath.Join(srcDir, baseFile+".pdf")
 
 	// Check if PDF exists.
 	if !pathelper.FileExists(pdf) {
