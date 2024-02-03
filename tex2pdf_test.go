@@ -3,13 +3,14 @@ package tex2pdf_test
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 
 	"github.com/northbright/tex2pdf"
 )
 
 func ExampleTex2PDF() {
-	// Use DEBUG mode.
-	tex2pdf.DebugMode = true
+	// Open DEBUG mode if need.
+	//tex2pdf.DebugMode = true
 
 	texFile := "src/my_book.tex"
 
@@ -20,8 +21,8 @@ func ExampleTex2PDF() {
 		return
 	}
 
-	fmt.Printf("Tex2PDF OK, output pdf: %v\n", pdf)
+	fmt.Printf("Tex2PDF OK, output pdf: %v\n", filepath.Base(pdf))
 
 	// Output:
-	//Tex2PDF OK, output pdf: src/my_book.pdf
+	//Tex2PDF OK, output pdf: my_book.pdf
 }
