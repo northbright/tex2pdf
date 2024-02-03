@@ -1,66 +1,68 @@
 package tex2pdf
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 
-	"github.com/northbright/iocopy"
 	"github.com/northbright/pathelper"
 )
 
-// Tex2PDF compiles the Tex file into the PDF file by running xelatex.
-func Tex2PDF(texFile, pdfFile string) error {
-	// If pdfFile is empty, set it to the same name as Tex file and put it to current dir.
-	if pdfFile == "" {
-		pdfFile = pathelper.BaseWithoutExt(texFile) + ".pdf"
-	}
+var (
+	// Show xelatex output or not
+	DebugMode = false
+)
 
+// Tex2PDF compiles a tex file into the PDF file by running xelatex.
+// It outputs the pdf under the source tex file's dir and returns the compiled PDF path.
+func Tex2PDF(texFile string) (string, error) {
 	// Get absolute path of tex file.
 	texFileAbsPath, err := filepath.Abs(texFile)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	// Get Source Tex File's Dir.
+	// Get source tex file's dir.
 	srcDir := filepath.Dir(texFileAbsPath)
 
 	// Check if xelatex command exists.
 	if !pathelper.CommandExists("xelatex") {
-		return fmt.Errorf("xelatex does not exists")
+		return "", fmt.Errorf("xelatex does not exists")
 	}
 
-	// Run "xelatex" command to compile Tex file into a PDF under src dir 2 times.
+	// Run "xelatex" command to compile a tex file into a PDF under src dir 2 times.
 	// 1st time: create a PDF and .aux files(cross-references) and a .toc(Table of Content).
 	// 2nd time: re-create the PDF with crosss-references and TOC.
 	for i := 0; i < 2; i++ {
-		cmd := exec.Command("xelatex", "-shell-escape", texFileAbsPath)
-		// Set work dir to tex file's dir.
+		// Run xelatex with options:
+		// -synctex=1
+		// -interaction=nonstopmode
+		// -shell-escape
+		cmd := exec.Command("xelatex", "-synctex", "1", "-interaction", "nonstopmode", "-shell-escape", texFileAbsPath)
+		// Set work dir to source tex file's dir.
 		cmd.Dir = srcDir
 
 		// Show xelatex output for DEBUG.
-		cmd.Stdout = os.Stdout
-		cmd.Stdin = os.Stdin
+		if DebugMode {
+			cmd.Stdout = os.Stdout
+			cmd.Stdin = os.Stdin
+		}
 
 		// Run xelatex
 		if err := cmd.Run(); err != nil {
-			return err
+			return "", err
 		}
 	}
 
-	// Source PDF: TMPDIR/TEX_FILE_NAME.pdf
-	src := filepath.Join(srcDir, pathelper.BaseWithoutExt(texFile)+".pdf")
-	dst := pdfFile
+	// Get output PDF file path.
+	baseFile := pathelper.BaseWithoutExt(texFile)
+	pdf := filepath.Join(srcDir, baseFile, ".pdf")
 
-	ctx := context.Background()
-	bufSize := (int64)(64 * 1024)
-
-	// Copy PDF from src to dst.
-	if _, err := iocopy.CopyFile(ctx, dst, src, bufSize); err != nil {
-		return err
+	// Check if PDF exists.
+	if !pathelper.FileExists(pdf) {
+		return "", fmt.Errorf("xelatex compiled successfully but no output pdf found")
 	}
 
-	return nil
+	return pdf, nil
 }
