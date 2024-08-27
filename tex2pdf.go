@@ -38,8 +38,18 @@ func Tex2PDF(texFile string) (string, error) {
 		// Run xelatex with options:
 		// -synctex=1
 		// -interaction=nonstopmode
+		// -8bit
 		// -shell-escape
-		cmd := exec.Command("xelatex", "-synctex", "1", "-interaction", "nonstopmode", "-shell-escape", texFileAbsPath)
+		cmd := exec.Command(
+			"xelatex",
+			"-synctex",
+			"1",
+			"-interaction",
+			"nonstopmode",
+			"-8bit",
+			"-shell-escape",
+			texFileAbsPath,
+		)
 		// Set work dir to source tex file's dir.
 		cmd.Dir = srcDir
 
