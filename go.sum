@@ -1,4 +1,2 @@
-github.com/northbright/iocopy v1.4.2 h1:4nqU4u6vTbcb+YQHOiYjR8FCMR6CJT9MEVfGxb47/Sc=
-github.com/northbright/iocopy v1.4.2/go.mod h1:lzRoB9YGIdPr/UXsWgG2b7LpSxtoLe9eYvxb34fPK68=
-github.com/northbright/pathelper v1.0.7 h1:s9iUCqwVe6zo5lz1nI3kcufyBOZ6IpSD2HtisKN+2hk=
-github.com/northbright/pathelper v1.0.7/go.mod h1:LBNv/o8YBdntBXTIWuzdhp+UzLqI4lJoCETHo1QM9Bw=
+github.com/northbright/pathelper v1.0.8 h1:1YPXVUpIH8zBlzfd7h/Vtsktf3xrUbrKpYgBAbDU6xc=
+github.com/northbright/pathelper v1.0.8/go.mod h1:LBNv/o8YBdntBXTIWuzdhp+UzLqI4lJoCETHo1QM9Bw=
