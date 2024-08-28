@@ -86,5 +86,6 @@ func Compile(texFile, outputPDF string) error {
 		return err
 	}
 
-	return nil
+	// Remove temp dir.
+	return os.RemoveAll(tmpDir)
 }
