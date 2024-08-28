@@ -19,7 +19,7 @@ jobs:
         - ubuntu-22.04
         - ubuntu-latest
         go:
-        - "1.21"
+        - "1.23"
 
       fail-fast: false
     steps:
