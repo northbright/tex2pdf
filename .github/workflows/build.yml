@@ -16,7 +16,6 @@ jobs:
         - windows-latest
         - macos-12
         - macos-latest
-        - ubuntu-20.04
         - ubuntu-22.04
         - ubuntu-latest
         go:
