@@ -1,37 +1,44 @@
 package tex2pdf
 
 import (
-	"fmt"
+	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
 
+	"github.com/northbright/copy/copydir"
+	"github.com/northbright/copy/copyfile"
 	"github.com/northbright/pathelper"
 )
 
 var (
 	// Show xelatex output or not
 	DebugMode = false
+
+	ErrXelatexNotExist = errors.New("xelatex does not exists")
+	ErrNoOutputPDF     = errors.New("xelatex compiled successfully but no output pdf found")
 )
 
-// Tex2PDF compiles a tex file into the PDF file by running xelatex.
-// It outputs the pdf under the source tex file's dir and returns the compiled PDF path.
-func Tex2PDF(texFile string) (string, error) {
-	// Get absolute path of tex file.
-	texFileAbsPath, err := filepath.Abs(texFile)
-	if err != nil {
-		return "", err
-	}
-
-	// Get source tex file's dir.
-	srcDir := filepath.Dir(texFileAbsPath)
-
+// Compile compiles a tex file into a PDF file by running xelatex.
+func Compile(texFile, outputPDF string) error {
 	// Check if xelatex command exists.
 	if !pathelper.CommandExists("xelatex") {
-		return "", fmt.Errorf("xelatex does not exists")
+		return ErrXelatexNotExist
 	}
 
-	// Run "xelatex" command to compile a tex file into a PDF under src dir 2 times.
+	// Get tex file's dir.
+	srcDir := filepath.Dir(texFile)
+
+	// Copy the source dir contains tex files to a temp dir.
+	tmpDir := filepath.Join(os.TempDir(), filepath.Base(srcDir))
+	if err := copydir.Do(context.Background(), srcDir, tmpDir); err != nil {
+		return err
+	}
+
+	tmpTexFile := filepath.Join(tmpDir, filepath.Base(texFile))
+
+	// Run "xelatex" command to compile a tex file into a PDF under temp dir 2 times.
 	// 1st time: create a PDF and .aux files(cross-references) and a .toc(Table of Content).
 	// 2nd time: re-create the PDF with crosss-references and TOC.
 	for i := 0; i < 2; i++ {
@@ -48,10 +55,10 @@ func Tex2PDF(texFile string) (string, error) {
 			"nonstopmode",
 			"-8bit",
 			"-shell-escape",
-			texFileAbsPath,
+			tmpTexFile,
 		)
-		// Set work dir to source tex file's dir.
-		cmd.Dir = srcDir
+		// Set work dir to the temp dir.
+		cmd.Dir = tmpDir
 
 		// Show xelatex output for DEBUG.
 		if DebugMode {
@@ -61,18 +68,23 @@ func Tex2PDF(texFile string) (string, error) {
 
 		// Run xelatex
 		if err := cmd.Run(); err != nil {
-			return "", err
+			return err
 		}
 	}
 
 	// Get output PDF file path.
 	baseFile := pathelper.BaseWithoutExt(texFile)
-	pdf := filepath.Join(srcDir, baseFile+".pdf")
+	pdf := filepath.Join(tmpDir, baseFile+".pdf")
 
 	// Check if PDF exists.
 	if !pathelper.FileExists(pdf) {
-		return "", fmt.Errorf("xelatex compiled successfully but no output pdf found")
+		return ErrNoOutputPDF
 	}
 
-	return pdf, nil
+	// Copy the PDF from temp dir to dst.
+	if err := copyfile.Do(context.Background(), pdf, outputPDF); err != nil {
+		return err
+	}
+
+	return nil
 }
