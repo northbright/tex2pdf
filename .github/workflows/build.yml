@@ -36,6 +36,7 @@ jobs:
       with:
         packages: >-
           scheme-small
+          ctex
           minted
           keyval
           ifthen
