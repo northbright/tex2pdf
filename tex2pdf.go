@@ -3,6 +3,7 @@ package tex2pdf
 import (
 	"context"
 	"errors"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,22 +14,58 @@ import (
 )
 
 var (
-	// Show xelatex output or not
-	DebugMode = false
-
 	ErrXelatexNotExist = errors.New("xelatex does not exists")
 	ErrNoOutputPDF     = errors.New("xelatex compiled successfully but no output pdf found")
 )
 
-// Compile compiles a tex file into a PDF file by running xelatex.
-func Compile(texFile, outputPDF string) error {
+// Compiler reads main LaTex file and compiles all LaTex files to a PDF.
+type Compiler struct {
+	texFile   string
+	outputPDF string
+	stdout    io.Writer
+	stderr    io.Writer
+}
+
+// Option represents the option of compiler.
+type Option func(c *Compiler)
+
+// Stdout returns option to set stdout of the cmd to run xelatex.
+func Stdout(stdout io.Writer) Option {
+	return func(c *Compiler) {
+		c.stdout = stdout
+	}
+}
+
+// Stderr returns option to set stderr of the cmd to run xelatex.
+func Stderr(stderr io.Writer) Option {
+	return func(c *Compiler) {
+		c.stderr = stderr
+	}
+}
+
+// New creates a new compiler.
+func New(texFile, outputPDF string, options ...Option) *Compiler {
+	c := &Compiler{
+		texFile:   texFile,
+		outputPDF: outputPDF,
+	}
+
+	for _, option := range options {
+		option(c)
+	}
+
+	return c
+}
+
+// Compile compiles all LaTex files to a PDF.
+func (c *Compiler) Compile() error {
 	// Check if xelatex command exists.
 	if !pathelper.CommandExists("xelatex") {
 		return ErrXelatexNotExist
 	}
 
 	// Get tex file's dir.
-	srcDir := filepath.Dir(texFile)
+	srcDir := filepath.Dir(c.texFile)
 
 	// Copy the source dir contains tex files to a temp dir.
 	tmpDir := filepath.Join(os.TempDir(), filepath.Base(srcDir))
@@ -36,7 +73,7 @@ func Compile(texFile, outputPDF string) error {
 		return err
 	}
 
-	tmpTexFile := filepath.Join(tmpDir, filepath.Base(texFile))
+	tmpTexFile := filepath.Join(tmpDir, filepath.Base(c.texFile))
 
 	// Run "xelatex" command to compile a tex file into a PDF under temp dir 2 times.
 	// 1st time: create a PDF and .aux files(cross-references) and a .toc(Table of Content).
@@ -60,10 +97,12 @@ func Compile(texFile, outputPDF string) error {
 		// Set work dir to the temp dir.
 		cmd.Dir = tmpDir
 
-		// Show xelatex output for DEBUG.
-		if DebugMode {
-			cmd.Stdout = os.Stdout
-			cmd.Stdin = os.Stdin
+		// Set stdout and stderr for xelatex command.
+		if c.stdout != nil {
+			cmd.Stdout = c.stdout
+		}
+		if c.stderr != nil {
+			cmd.Stderr = c.stderr
 		}
 
 		// Run xelatex
@@ -73,7 +112,7 @@ func Compile(texFile, outputPDF string) error {
 	}
 
 	// Get output PDF file path.
-	baseFile := pathelper.BaseWithoutExt(texFile)
+	baseFile := pathelper.BaseWithoutExt(c.texFile)
 	pdf := filepath.Join(tmpDir, baseFile+".pdf")
 
 	// Check if PDF exists.
@@ -82,7 +121,7 @@ func Compile(texFile, outputPDF string) error {
 	}
 
 	// Copy the PDF from temp dir to dst.
-	if err := copyfile.Do(context.Background(), pdf, outputPDF); err != nil {
+	if err := copyfile.Do(context.Background(), pdf, c.outputPDF); err != nil {
 		return err
 	}
 
