@@ -2,6 +2,7 @@ package tex2pdf_test
 
 import (
 	"log"
+	"os"
 
 	"github.com/northbright/tex2pdf"
 )
@@ -11,9 +12,9 @@ func ExampleCompiler_Compile() {
 	outputPDF := "output/my_book.pdf"
 
 	// Create a compiler with specified stdout and stderr options.
-	// c := tex2pdf.New(texFile, outputPDF, tex2pdf.Stdout(os.Stdout), tex2pdf.Stderr(os.Stderr))
+	c := tex2pdf.New(texFile, outputPDF, tex2pdf.Stdout(os.Stdout), tex2pdf.Stderr(os.Stderr))
 	// Create a compiler.
-	c := tex2pdf.New(texFile, outputPDF)
+	//c := tex2pdf.New(texFile, outputPDF)
 
 	log.Printf("start compiling Tex File to PDF...\nTex file: %v\noutput PDF: %v", texFile, outputPDF)
 	// Compile a Tex file to a PDF.
