@@ -85,7 +85,8 @@ func (c *Compiler) Compile() error {
 		return err
 	}
 
-	tmpTexFile := filepath.Join(tmpDir, filepath.Base(texFile))
+	//tmpTexFile := filepath.Join(tmpDir, filepath.Base(texFile))
+	tmpTexFile := filepath.Base(texFile)
 
 	// Run "xelatex" command to compile a tex file into a PDF under temp dir 2 times.
 	// 1st time: create a PDF and .aux files(cross-references) and a .toc(Table of Content).
