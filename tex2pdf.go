@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -64,8 +65,19 @@ func (c *Compiler) Compile() error {
 		return ErrXelatexNotExist
 	}
 
+	// Convert LaTex file and output PDF to absolute paths.
+	texFile, err := filepath.Abs(c.texFile)
+	if err != nil {
+		return err
+	}
+
+	outputPDF, err := filepath.Abs(c.outputPDF)
+	if err != nil {
+		return err
+	}
+
 	// Get tex file's dir.
-	srcDir := filepath.Dir(c.texFile)
+	srcDir := filepath.Dir(texFile)
 
 	// Copy the source dir contains tex files to a temp dir.
 	tmpDir := filepath.Join(os.TempDir(), filepath.Base(srcDir))
@@ -73,7 +85,7 @@ func (c *Compiler) Compile() error {
 		return err
 	}
 
-	tmpTexFile := filepath.Join(tmpDir, filepath.Base(c.texFile))
+	tmpTexFile := filepath.Join(tmpDir, filepath.Base(texFile))
 
 	// Run "xelatex" command to compile a tex file into a PDF under temp dir 2 times.
 	// 1st time: create a PDF and .aux files(cross-references) and a .toc(Table of Content).
@@ -94,6 +106,7 @@ func (c *Compiler) Compile() error {
 			"-shell-escape",
 			tmpTexFile,
 		)
+
 		// Set work dir to the temp dir.
 		cmd.Dir = tmpDir
 
@@ -104,6 +117,8 @@ func (c *Compiler) Compile() error {
 		if c.stderr != nil {
 			cmd.Stderr = c.stderr
 		}
+
+		log.Printf("==================\nfinal cmd: %v", cmd.String())
 
 		// Run xelatex
 		if err := cmd.Run(); err != nil {
@@ -121,7 +136,7 @@ func (c *Compiler) Compile() error {
 	}
 
 	// Copy the PDF from temp dir to dst.
-	if err := copyfile.Do(context.Background(), pdf, c.outputPDF); err != nil {
+	if err := copyfile.Do(context.Background(), pdf, outputPDF); err != nil {
 		return err
 	}
 
