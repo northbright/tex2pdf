@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -85,7 +84,7 @@ func (c *Compiler) Compile() error {
 		return err
 	}
 
-	//tmpTexFile := filepath.Join(tmpDir, filepath.Base(texFile))
+	// Use base file name because we'll set work dir to the temp dir.
 	tmpTexFile := filepath.Base(texFile)
 
 	// Run "xelatex" command to compile a tex file into a PDF under temp dir 2 times.
@@ -118,8 +117,6 @@ func (c *Compiler) Compile() error {
 		if c.stderr != nil {
 			cmd.Stderr = c.stderr
 		}
-
-		log.Printf("==================\nfinal cmd: %v", cmd.String())
 
 		// Run xelatex
 		if err := cmd.Run(); err != nil {
