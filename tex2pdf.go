@@ -8,8 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/northbright/copy/copydir"
-	"github.com/northbright/copy/copyfile"
+	"github.com/northbright/cp"
 	"github.com/northbright/pathelper"
 )
 
@@ -80,7 +79,8 @@ func (c *Compiler) Compile() error {
 
 	// Copy the source dir contains tex files to a temp dir.
 	tmpDir := filepath.Join(os.TempDir(), filepath.Base(srcDir))
-	if err := copydir.Do(context.Background(), srcDir, tmpDir); err != nil {
+	_, err = cp.CopyDir(context.Background(), srcDir, tmpDir)
+	if err != nil {
 		return err
 	}
 
@@ -134,7 +134,8 @@ func (c *Compiler) Compile() error {
 	}
 
 	// Copy the PDF from temp dir to dst.
-	if err := copyfile.Do(context.Background(), pdf, outputPDF); err != nil {
+	_, err = cp.CopyFile(context.Background(), pdf, outputPDF, 0)
+	if err != nil {
 		return err
 	}
 
