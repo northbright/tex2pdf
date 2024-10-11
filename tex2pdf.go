@@ -134,7 +134,7 @@ func (c *Compiler) Compile() error {
 	}
 
 	// Copy the PDF from temp dir to dst.
-	_, err = cp.CopyFile(context.Background(), pdf, outputPDF, 0)
+	_, err = cp.CopyFile(context.Background(), pdf, outputPDF)
 	if err != nil {
 		return err
 	}
